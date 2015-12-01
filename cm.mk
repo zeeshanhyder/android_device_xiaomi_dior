@@ -1,12 +1,8 @@
-# Boot animation
-TARGET_SCREEN_HEIGHT := 1280
-TARGET_SCREEN_WIDTH := 720
+$(call inherit-product, device/xiaomi/dior/device_dior.mk)
+$(call inherit-product-if-exists, vendor/xiaomi/dior/dior-vendor.mk)
 
-# Inherit some common CM stuff
+# Inherit some common CM stuff.
 $(call inherit-product, vendor/cm/config/common_full_phone.mk)
-
-# Inherit device configuration
-$(call inherit-product, device/xiaomi/dior/full_dior.mk)
 
 PRODUCT_RELEASE_NAME := Redmi Note 4G
 PRODUCT_NAME := cm_dior

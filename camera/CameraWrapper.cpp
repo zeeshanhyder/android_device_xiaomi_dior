@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014, The CyanogenMod Project
+ * Copyright (C) 2012-2015, The CyanogenMod Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@
 *
 */
 
-#define LOG_NDEBUG 0
-#define LOG_PARAMETERS
+//#define LOG_NDEBUG 0
 
 #define LOG_TAG "CameraWrapper"
 #include <cutils/log.h>
@@ -33,9 +32,6 @@
 #include <hardware/camera.h>
 #include <camera/Camera.h>
 #include <camera/CameraParameters.h>
-
-const char KEY_VIDEO_HDR[] = "video-hdr";
-const char KEY_VIDEO_HDR_VALUES[] = "video-hdr-values";
 
 static android::Mutex gCameraWrapperLock;
 static camera_module_t *gVendorModule = 0;
@@ -68,6 +64,8 @@ camera_module_t HAL_MODULE_INFO_SYM = {
     .set_callbacks = NULL, /* remove compilation warnings */
     .get_vendor_tag_ops = NULL, /* remove compilation warnings */
     .open_legacy = NULL, /* remove compilation warnings */
+    .set_torch_mode = NULL, /* remove compilation warnings */
+    .init = NULL, /* remove compilation warnings */
     .reserved = {0}, /* remove compilation warnings */
 };
 
@@ -101,71 +99,15 @@ static int check_vendor_module()
 
 static char *camera_fixup_getparams(int id, const char *settings)
 {
-    int rotation = 0;
-    const char *captureMode = "normal";
-    const char *videoHdr = "false";
-
     android::CameraParameters params;
     params.unflatten(android::String8(settings));
 
-#ifdef LOG_PARAMETERS
+#if !LOG_NDEBUG
     ALOGV("%s: original parameters:", __FUNCTION__);
     params.dump();
 #endif
 
-    if (params.get(android::CameraParameters::KEY_CAPTURE_MODE)) {
-        captureMode = params.get(android::CameraParameters::KEY_CAPTURE_MODE);
-    }
-
-    if (params.get(android::CameraParameters::KEY_ROTATION)) {
-        rotation = atoi(params.get(android::CameraParameters::KEY_ROTATION));
-    }
-
-    if (params.get(KEY_VIDEO_HDR)) {
-        videoHdr = params.get(KEY_VIDEO_HDR);
-    }
-
-    /* Disable face detection */
-    params.set(android::CameraParameters::KEY_MAX_NUM_DETECTED_FACES_HW, "0");
-    params.set(android::CameraParameters::KEY_MAX_NUM_DETECTED_FACES_SW, "0");
-    params.set("qc-max-num-requested-faces", "0");
-    params.set(android::CameraParameters::KEY_FACE_DETECTION, "off");
-
-    /* Advertise video HDR values */
-    params.set(KEY_VIDEO_HDR_VALUES, "off,on");
-
-    /* Fix video HDR values */
-    if (!strcmp(videoHdr, "true")) {
-        params.set(KEY_VIDEO_HDR, "on");
-    }
-    if (!strcmp(videoHdr, "false")) {
-        params.set(KEY_VIDEO_HDR, "off");
-    }
-
-    params.set("preview-frame-rate-mode", "frame-rate-fixed");
-
-    /* Fix rotation missmatch */
-    switch (rotation) {
-        case 90:
-            params.set(android::CameraParameters::KEY_ROTATION, "0");
-            break;
-        case 180:
-            params.set(android::CameraParameters::KEY_ROTATION, "90");
-            break;
-        case 270:
-            params.set(android::CameraParameters::KEY_ROTATION, "180");
-            break;
-        default:
-            break;
-    }
-
-    /* Set HDR mode */
-    if (!strcmp(captureMode, "hdr")) {
-        params.set(android::CameraParameters::KEY_SCENE_MODE,
-                android::CameraParameters::SCENE_MODE_HDR);
-    }
-
-#ifdef LOG_PARAMETERS
+#if !LOG_NDEBUG
     ALOGV("%s: fixed parameters:", __FUNCTION__);
     params.dump();
 #endif
@@ -178,62 +120,44 @@ static char *camera_fixup_getparams(int id, const char *settings)
 
 static char *camera_fixup_setparams(int id, const char *settings)
 {
-    bool isVideo = false;
-    const char *sceneMode = "auto";
-    const char *videoHdr = "false";
+    bool videoMode = false;
+    bool hdrMode = false;
 
     android::CameraParameters params;
     params.unflatten(android::String8(settings));
 
-#ifdef LOG_PARAMETERS
+#if !LOG_NDEBUG
     ALOGV("%s: original parameters:", __FUNCTION__);
     params.dump();
 #endif
 
     if (params.get(android::CameraParameters::KEY_RECORDING_HINT)) {
-        isVideo = !strcmp(params.get(android::CameraParameters::KEY_RECORDING_HINT), "true");
+        videoMode = !strcmp(params.get(android::CameraParameters::KEY_RECORDING_HINT), "true");
     }
 
     if (params.get(android::CameraParameters::KEY_SCENE_MODE)) {
-        sceneMode = params.get(android::CameraParameters::KEY_SCENE_MODE);
+        hdrMode = (!strcmp(params.get(android::CameraParameters::KEY_SCENE_MODE), "hdr"));
     }
 
-    if (params.get(KEY_VIDEO_HDR)) {
-        videoHdr = params.get(KEY_VIDEO_HDR);
-    }
-
-    /* Disable face detection */
-    params.set(android::CameraParameters::KEY_MAX_NUM_DETECTED_FACES_HW, "0");
-    params.set(android::CameraParameters::KEY_MAX_NUM_DETECTED_FACES_SW, "0");
-    params.set("qc-max-num-requested-faces", "0");
-    params.set(android::CameraParameters::KEY_FACE_DETECTION, "off");
-
-    /* Enable fixed fps mode */
-    params.set("preview-frame-rate-mode", "frame-rate-fixed");
-
-    if (!isVideo && id == 0) {
-        /* Disable OIS, set continuous burst to prevent crash */
-        params.set(android::CameraParameters::KEY_CONTIBURST_TYPE, "unlimited");
-        params.set(android::CameraParameters::KEY_OIS_SUPPORT, "false");
-        params.set(android::CameraParameters::KEY_OIS_MODE, "off");
-
-        /* Enable HDR */
-        if (!strcmp(sceneMode, android::CameraParameters::SCENE_MODE_HDR)) {
-            params.set(android::CameraParameters::KEY_SCENE_MODE, "off");
-            params.set(android::CameraParameters::KEY_CAPTURE_MODE, "hdr");
-        } else {
-            params.set(android::CameraParameters::KEY_CAPTURE_MODE, "normal");
-            params.set(android::CameraParameters::KEY_ZSL, "on");
-            params.set(android::CameraParameters::KEY_CAMERA_MODE, "1");
+    /* Disable ZSL and HDR snapshots in video mode */
+    if (videoMode) {
+        params.set("zsl", "off");
+        if (hdrMode) {
+            params.set(android::CameraParameters::KEY_SCENE_MODE, "auto");
         }
+    } else {
+        params.set("zsl", "on");
     }
 
-    if (isVideo && id == 1) {
-        /* Front camera only supports infinity */
-        params.set(android::CameraParameters::KEY_FOCUS_MODE, "infinity");
+    /* Enable Morpho EasyHDR and disable flash in HDR mode */
+    if (hdrMode && !videoMode) {
+        params.set("morpho-hdr", "true");
+        params.set(android::CameraParameters::KEY_FLASH_MODE, android::CameraParameters::FLASH_MODE_OFF);
+    } else {
+        params.set("morpho-hdr", "false");
     }
 
-#ifdef LOG_PARAMETERS
+#if !LOG_NDEBUG
     ALOGV("%s: fixed parameters:", __FUNCTION__);
     params.dump();
 #endif
@@ -413,7 +337,6 @@ static int camera_auto_focus(struct camera_device *device)
 
     if (!device)
         return -EINVAL;
-
 
     return VENDOR_CALL(device, auto_focus);
 }
@@ -636,7 +559,7 @@ static int camera_device_open(const hw_module_t *module, const char *name,
         memset(camera_ops, 0, sizeof(*camera_ops));
 
         camera_device->base.common.tag = HARDWARE_DEVICE_TAG;
-        camera_device->base.common.version = CAMERA_DEVICE_API_VERSION_1_0;
+        camera_device->base.common.version = HARDWARE_DEVICE_API_VERSION(1, 0);
         camera_device->base.common.module = (hw_module_t *)(module);
         camera_device->base.common.close = camera_device_close;
         camera_device->base.ops = camera_ops;

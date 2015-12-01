@@ -18,7 +18,7 @@
 #ifndef _BDROID_BUILDCFG_H
 #define _BDROID_BUILDCFG_H
 
-#define BTM_DEF_LOCAL_NAME   "HM NOTE 1LTE"
+#define BTM_DEF_LOCAL_NAME   "Xiaomi Redmi Note 4G"
 
 #define BLUETOOTH_QTI_SW TRUE
 // Disables read remote device feature

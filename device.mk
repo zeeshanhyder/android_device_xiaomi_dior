@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2014 The CyanogenMod Project
+# Copyright (C) 2015 The CyanogenMod Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
 # limitations under the License.
 #
 
+$(call inherit-product, vendor/xiaomi/dior/dior-vendor.mk)
+
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
-PRODUCT_AAPT_CONFIG := normal hdpi xhdpi
+PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
+
+TARGET_SCREEN_HEIGHT := 1280
+TARGET_SCREEN_WIDTH := 720
 
 $(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
 
@@ -26,6 +31,10 @@ PRODUCT_PACKAGES += \
     AntHalService \
     com.dsi.ant.antradio_library \
     libantradio
+
+# Art
+PRODUCT_PROPERTY_OVERRIDES += \
+    dalvik.vm.dex2oat-flags=--no-watch-dog
 
 # Audio
 PRODUCT_PACKAGES += \
@@ -44,6 +53,7 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/audio_effects.conf:system/vendor/etc/audio_effects.conf \
+    $(LOCAL_PATH)/configs/audio_platform_info.xml:system/etc/audio_platform_info.xml \
     $(LOCAL_PATH)/configs/audio_policy.conf:system/etc/audio_policy.conf \
     $(LOCAL_PATH)/configs/mixer_paths.xml:system/etc/mixer_paths.xml
 
@@ -57,28 +67,18 @@ PRODUCT_PACKAGES += \
 
 # Camera
 PRODUCT_PACKAGES += \
-	camera.msm8226
-
-PRODUCT_PROPERTY_OVERRIDES += \
-    camera2.portability.force_api=1
-
-PRODUCT_PACKAGES += \
+    camera.msm8226 \
     libxml2
 
 # Charger
 PRODUCT_PACKAGES += \
-    charger_res_images
+    charger_res_images \
+    liboverlay \
+    libemoji
 
 # Connectivity
 PRODUCT_PACKAGES += \
     libcnefeatureconfig
-
-# CRDA
-PRODUCT_PACKAGES += \
-    crda \
-    linville.key.pub.pem \
-    regdbdump \
-    regulatory.bin
 
 # Display
 PRODUCT_PACKAGES += \
@@ -86,6 +86,10 @@ PRODUCT_PACKAGES += \
     gralloc.msm8226 \
     hwcomposer.msm8226 \
     memtrack.msm8226
+
+# DRM
+#PRODUCT_PROPERTY_OVERRIDES += \
+#    drm.service.enabled=true
 
 # Ebtables
 PRODUCT_PACKAGES += \
@@ -95,33 +99,27 @@ PRODUCT_PACKAGES += \
 
 # Filesystem
 PRODUCT_PACKAGES += \
-    e2fsck \
     make_ext4fs \
     resize2fs \
     setup_fs
 
 # FM
 PRODUCT_PACKAGES += \
-    FM2 \
-    FMRecord \
-    libqcomfm_jni \
-    qcom.fmradio
+    FMRadio \
+    libfmjni
 
 # GPS
 PRODUCT_PACKAGES += \
     gps.msm8226
 
 PRODUCT_PACKAGES += \
-    flp.conf \
     gps.conf \
-    izat.conf \
-    lowi.conf \
-    msap.conf \
-    quipc.conf \
-    sap.conf \
-    xtwifi.conf
+    sap.conf
 
-# IRSC
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.gps.agps_provider=1
+
+# IPC router
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/sec_config:system/etc/sec_config
 
@@ -129,8 +127,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/keylayout/ft5x06.kl:system/usr/keylayout/ft5x06.kl \
     $(LOCAL_PATH)/keylayout/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl \
-    $(LOCAL_PATH)/keylayout/msm8226-tapan-snd-card_Button_Jack0.kl:system/usr/keylayout/msm8226-tapan-snd-card_Button_Jack0.kl \
-    $(LOCAL_PATH)/keylayout/msm8226-tapan-snd-card_Button_Jack1.kl:system/usr/keylayout/msm8226-tapan-snd-card_Button_Jack1.kl
+    $(LOCAL_PATH)/keylayout/msm8226-tapan-snd-card_Button_Jack.kl:system/usr/keylayout/msm8226-tapan-snd-card_Button_Jack.kl
 
 # Keystore
 PRODUCT_PACKAGES += \
@@ -143,22 +140,17 @@ PRODUCT_PACKAGES += \
 # Media
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/media_codecs.xml:system/etc/media_codecs.xml \
+    $(LOCAL_PATH)/configs/media_codecs_performance.xml:system/etc/media_codecs_performance.xml \
     $(LOCAL_PATH)/configs/media_profiles.xml:system/etc/media_profiles.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:system/etc/media_codecs_google_telephony.xml \
-    frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:system/etc/media_codecs_google_video.xml \
-    frameworks/av/media/libstagefright/data/media_codecs_ffmpeg.xml:system/etc/media_codecs_ffmpeg.xml
+    frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:system/etc/media_codecs_google_video.xml
 
+# OMX
 PRODUCT_PACKAGES += \
     libdashplayer \
-    libmm-omxcore \
-    libOmxAacEnc \
-    libOmxAmrEnc \
     libOmxCore \
-    libOmxEvrcEnc \
-    libOmxQcelp13Enc \
     libOmxVdec \
-    libOmxVdecHevc \
     libOmxVenc \
     libstagefrighthw \
     qcmediaplayer
@@ -202,6 +194,9 @@ PRODUCT_PACKAGES += \
     fstab.dior \
     init.dior.rc \
     init.dior.usb.rc \
+    init.mmi.touch.sh \
+    init.qcom.ssr.sh \
+    init.qcom.fm.sh \
     ueventd.dior.rc
 
 # Sensors
@@ -222,21 +217,20 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
+
 # Wifi
 PRODUCT_PACKAGES += \
     hostapd_default.conf \
     p2p_supplicant_overlay.conf \
     wpa_supplicant_overlay.conf \
-    wpa_supplicant_wcn.conf
+    WCNSS_qcom_wlan_nv.bin \
+    WCNSS_qcom_wlan_nv_h3gbl.bin \
+    WCNSS_qcom_wlan_nv_h3td.bin \
+    WCNSS_qcom_wlan_nv_h3w.bin
 
-
-# WiFi config
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/wifi/WCNSS_cfg.dat:system/etc/firmware/wlan/prima/WCNSS_cfg.dat \
-    $(LOCAL_PATH)/wifi/WCNSS_qcom_cfg.ini:system/etc/firmware/wlan/prima/WCNSS_qcom_cfg.ini
-
-PRODUCT_PACKAGES += \
-	WCNSS_qcom_wlan_nv_h3w.bin
+    kernel/xiaomi/dior/drivers/staging/prima/firmware_bin/WCNSS_cfg.dat:system/etc/firmware/wlan/prima/WCNSS_cfg.dat \
+    kernel/xiaomi/dior/drivers/staging/prima/firmware_bin/WCNSS_qcom_cfg.ini:system/etc/firmware/wlan/prima/WCNSS_qcom_cfg.ini
 
 PRODUCT_PACKAGES += \
     dhcpcd.conf \
@@ -252,9 +246,6 @@ PRODUCT_PACKAGES += \
     wcnss_service
 
 PRODUCT_PROPERTY_OVERRIDES += \
-    wifi.interface=wlan0
-
-# WFD
-PRODUCT_PROPERTY_OVERRIDES += \
+    wifi.interface=wlan0 \
     persist.debug.wfd.enable=1 \
     persist.sys.wfd.virtual=0

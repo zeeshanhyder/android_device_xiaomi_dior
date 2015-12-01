@@ -30,6 +30,7 @@ import init.dior.usb.rc
 on early-init
     mount debugfs debugfs /sys/kernel/debug
     write /sys/block/mmcblk0/queue/scheduler noop
+    write /sys/block/mmcblk0/bdi/read_ahead_kb 512
 
 on init
     # Set permissions for persist partition
@@ -64,14 +65,15 @@ on init
     symlink /storage/usbdisk /usb_storage
 
 on fs
-    mount_all ./fstab.dior
+    mount_all fstab.dior
     restorecon_recursive /persist
+
     setprop ro.crypto.fuse_sdcard true
-    write /sys/kernel/boot_adsp/boot 1
 
 on early-boot
     # Set RLIMIT_MEMLOCK to 64MB
     setrlimit 8 67108864 67108864
+    write /sys/kernel/boot_adsp/boot 1
 
 on boot
     # Enable writing to led blink node from userspace
@@ -85,23 +87,21 @@ on boot
     chown system system /sys/class/leds/blue/duty_pcts
     chown system system /sys/class/leds/blue/ramp_step_ms
 
-	chown system system /sys/class/leds/flashlight/brightness
-	chmod 0666 /sys/class/leds/flashlight/brightness
-	
-	chown system system /sys/class/leds/led:flash_0/brightness
-	chmod 0666 /sys/class/leds/led:flash_0/brightness
-	
-	chown system system /sys/class/leds/led:flash_1/brightness
-	chmod 0666 /sys/class/leds/led:flash_1/brightness
-	
-	chown system system /sys/class/leds/led:flash_torch/brightness
-	chmod 0666 /sys/class/leds/led:flash_torch/brightness
+    chown system system /sys/class/leds/torch-light/brightness
+    chown system system /sys/class/leds/button-backlight/brightness
 
-	chown system system /sys/class/leds/button-backlight/brightness
-	chmod 0666 /sys/class/leds/button-backlight/brightness
+	# Key disabler
+    chown root system /sys/bus/i2c/drivers/atmel_mxt_ts/5-004b/keys_off
+    chmod 0664 /sys/bus/i2c/drivers/atmel_mxt_ts/5-004b/keys_off
+    restorecon /sys/bus/i2c/drivers/atmel_mxt_ts/5-004b/keys_off
 
     chown bluetooth bluetooth /sys/module/hci_smd/parameters/hcismd_set
     chmod 0660 /sys/module/hci_smd/parameters/hcismd_set
+
+    write /sys/bus/msm_subsys/devices/subsys0/restart_level related
+    write /sys/bus/msm_subsys/devices/subsys1/restart_level related
+    write /sys/bus/msm_subsys/devices/subsys2/restart_level related
+    write /sys/bus/msm_subsys/devices/subsys3/restart_level related
 
     # Create QMUX deamon socket area
     mkdir /dev/socket/qmux_radio 0770 radio radio
@@ -112,6 +112,8 @@ on boot
     chmod 2770 /dev/socket/qmux_bluetooth
     mkdir /dev/socket/qmux_gps 0770 gps gps
     chmod 2770 /dev/socket/qmux_gps
+    chown system system /sys/module/radio_iris_transport/parameters/fmsmd_set
+    chmod 0660 /sys/module/radio_iris_transport/parameters/fmsmd_set
 
     # Prevents permission denied error for telephony
     chmod 0644 /proc/cmdline
@@ -144,10 +146,6 @@ on post-fs-data
 
     # Create directories for Location services
     mkdir /data/misc/location 0770 gps gps
-    mkdir /data/misc/location/mq 0770 gps gps
-    mkdir /data/misc/location/xtwifi 0770 gps gps
-    mkdir /data/misc/location/gpsone_d 0770 system gps
-    mkdir /data/misc/location/quipc 0770 gps system
     mkdir /data/misc/location/gsiff 0770 gps gps
 
     # Create directory used by audio subsystem
@@ -176,11 +174,14 @@ on post-fs-data
     mkdir /persist/misc/sensors
     chmod 775 /persist/misc/sensors
 
+    # Create FM directories for patchdownloader
+    mkdir /data/misc/fm 0770 system system
+    chmod 0770 /data/misc/fm
+
     setprop vold.post_fs_data_done 1
 
     # Adjust vibrator amplitude
-    write /sys/class/timed_output/vibrator/amp 90
-    chown root system /sys/class/timed_output/vibrator/amp
+    chown system system /sys/class/timed_output/vibrator/amp
     chmod 0664 /sys/class/timed_output/vibrator/amp
     restorecon /sys/class/timed_output/vibrator/amp
 
@@ -188,9 +189,6 @@ on post-fs-data
     chown root system /sys/devices/virtual/graphics/fb0/rgb
     chmod 0664 /sys/devices/virtual/graphics/fb0/rgb
     restorecon /sys/devices/virtual/graphics/fb0/rgb
-
-	# Enable double tap to wake
-	write /sys/android_touch/doubletap2wake 1
 
 service irsc_util /system/bin/logwrapper /system/bin/irsc_util "/etc/sec_config"
     class main
@@ -238,12 +236,16 @@ service sensors /system/bin/sensors.qcom
     group root radio system
 
 service p2p_supplicant /system/bin/wpa_supplicant \
-    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
-    -I/system/etc/wifi/wpa_supplicant_overlay.conf -N \
     -ip2p0 -Dnl80211 -c/data/misc/wifi/p2p_supplicant.conf \
-    -I/system/etc/wifi/p2p_supplicant_overlay.conf \
+    -I/system/etc/wifi/p2p_supplicant_overlay.conf -N \
+    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
+    -I/system/etc/wifi/wpa_supplicant_overlay.conf \
     -puse_p2p_group_interface=1 \
     -e/data/misc/wifi/entropy.bin -g@android:wpa_wlan0
+    # we will start as root and wpa_supplicant will switch to user wifi
+    # after setting up the capabilities required for WEXT
+    # user wifi
+    # group wifi inet keystore
     class main
     socket wpa_wlan0 dgram 660 wifi wifi
     disabled
@@ -253,6 +255,10 @@ service wpa_supplicant /system/bin/wpa_supplicant \
     -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
     -I/system/etc/wifi/wpa_supplicant_overlay.conf \
     -e/data/misc/wifi/entropy.bin -g@android:wpa_wlan0
+    # we will start as root and wpa_supplicant will switch to user wifi
+    # after setting up the capabilities required for WEXT
+    # user wifi
+    # group wifi inet keystore
     class main
     socket wpa_wlan0 dgram 660 wifi wifi
     disabled
@@ -319,7 +325,7 @@ service ril-daemon2 /system/bin/rild -c 2
     group radio cache inet misc audio sdcard_rw qcom_oncrpc qcom_diag log
     disabled
 
-on property:persist.radio.multisim.config=dsds
+on property:persist.radio.multisim.config=none
     start ril-daemon2
 
 service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emulated
@@ -343,8 +349,7 @@ service time_daemon /system/bin/time_daemon
     user root
     group root
 
-service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
-    class main
+service mpdecision /system/bin/mpdecision --avg_comp
     user root
     group root system
     disabled
@@ -372,52 +377,57 @@ service wcnss-service /system/bin/wcnss_service
 
 #start GNSS/Sensor interface daemon
 service gsiff_daemon /system/bin/gsiff_daemon
+    class late_start
+    user system
+    group gps net_raw
+
+service fm_dl /system/bin/sh /system/etc/init.qcom.fm.sh
    class late_start
    user system
-   group gps net_raw
-
-service quipc_igsn /system/bin/quipc_igsn
-    class late_start
-    user gps
-    group inet gps qcom_diag
-
-service quipc_main /system/bin/quipc_main
-    class late_start
-    user gps
-    group gps net_admin wifi inet qcom_diag
-
-service location_mq /system/bin/location-mq
-    class late_start
-    user gps
-    group gps
-
-service xtwifi_inet /system/bin/xtwifi-inet-agent
-    class late_start
-    user gps
-    group inet gps
-
-service xtwifi_client /system/bin/xtwifi-client
-    class late_start
-    user gps
-    group net_admin wifi inet gps
-
-service lowi-server /system/bin/lowi-server
-    class late_start
-    user gps
-    group gps net_admin wifi inet qcom_diag
+   group system
+   disabled
+   oneshot
 
 service charger /sbin/healthd -c
     class charger
     critical
     seclabel u:r:healthd:s0
 
+on charger
+    # Enable Power modes and set the CPU Freq Sampling rates
+    write /sys/module/lpm_levels/enable_low_power/l2 2
+    write /sys/module/msm_pm/modes/cpu0/power_collapse/suspend_enabled 1
+    write /sys/module/msm_pm/modes/cpu1/power_collapse/suspend_enabled 1
+    write /sys/module/msm_pm/modes/cpu2/power_collapse/suspend_enabled 1
+    write /sys/module/msm_pm/modes/cpu3/power_collapse/suspend_enabled 1
+    write /sys/module/msm_pm/modes/cpu0/power_collapse/idle_enabled 1
+    write /sys/devices/system/cpu/cpu1/online 1
+    write /sys/devices/system/cpu/cpu2/online 1
+    write /sys/devices/system/cpu/cpu3/online 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor powersave
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor powersave
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor powersave
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor powersave
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 300000
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq 300000
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq 300000
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq 300000
+    write /sys/devices/system/cpu/cpu1/online 0
+    write /sys/devices/system/cpu/cpu2/online 0
+    write /sys/devices/system/cpu/cpu3/online 0
+
 on property:sys.boot_completed=1
-    # Enable Power modes
+    write /sys/block/mmcblk0/queue/scheduler cfq
+    # Enable Power modes and set the CPU Freq Sampling rates
     write /sys/module/lpm_levels/enable_low_power/l2 4
     write /sys/module/msm_pm/modes/cpu0/power_collapse/suspend_enabled 1
     write /sys/module/msm_pm/modes/cpu1/power_collapse/suspend_enabled 1
     write /sys/module/msm_pm/modes/cpu2/power_collapse/suspend_enabled 1
     write /sys/module/msm_pm/modes/cpu3/power_collapse/suspend_enabled 1
+    write /sys/module/msm_pm/modes/cpu0/power_collapse/idle_enabled 1
+    write /sys/module/msm_pm/modes/cpu1/power_collapse/idle_enabled 1
+    write /sys/module/msm_pm/modes/cpu2/power_collapse/idle_enabled 1
+    write /sys/module/msm_pm/modes/cpu3/power_collapse/idle_enabled 1
     write /sys/module/msm_pm/modes/cpu0/standalone_power_collapse/suspend_enabled 1
     write /sys/module/msm_pm/modes/cpu1/standalone_power_collapse/suspend_enabled 1
     write /sys/module/msm_pm/modes/cpu2/standalone_power_collapse/suspend_enabled 1
@@ -426,29 +436,31 @@ on property:sys.boot_completed=1
     write /sys/module/msm_pm/modes/cpu1/standalone_power_collapse/idle_enabled 1
     write /sys/module/msm_pm/modes/cpu2/standalone_power_collapse/idle_enabled 1
     write /sys/module/msm_pm/modes/cpu3/standalone_power_collapse/idle_enabled 1
-    write /sys/module/msm_pm/modes/cpu0/power_collapse/idle_enabled 1
     write /sys/devices/system/cpu/cpu1/online 1
     write /sys/devices/system/cpu/cpu2/online 1
     write /sys/devices/system/cpu/cpu3/online 1
 
-on property:init.svc.bootanim=stopped
-    # Switch to ROW and balanced mode after boot for better UX
-    write /sys/block/mmcblk0/queue/scheduler row
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ondemand
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor ondemand
     write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor ondemand
     write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor ondemand
     write /sys/devices/system/cpu/cpufreq/ondemand/up_threshold 90
     write /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate 50000
-    write /sys/devices/system/cpu/cpufreq/ondemand/io_is_busy 1
+    write /sys/devices/system/cpu/cpufreq/ondemand/io_is_busy 0
     write /sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor 2
     write /sys/devices/system/cpu/cpufreq/ondemand/down_differential 10
     write /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_multi_core 70
-    write /sys/devices/system/cpu/cpufreq/ondemand/down_differential_multi_core 3
-    write /sys/devices/system/cpu/cpufreq/ondemand/optimal_freq 300000
+    write /sys/devices/system/cpu/cpufreq/ondemand/down_differential_multi_core 10
+    write /sys/devices/system/cpu/cpufreq/ondemand/optimal_freq 787200
     write /sys/devices/system/cpu/cpufreq/ondemand/sync_freq 300000
     write /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_any_cpu_load 80
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 300000
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq 300000
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq 300000
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq 300000
     start mpdecision
+
+    setprop sys.io.scheduler cfq
 
 # CyanogenMod Performance Profiles
 
@@ -466,8 +478,10 @@ on property:sys.perf.profile=0
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq 1190400
     write /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq 1190400
     write /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq 1190400
+    write /sys/devices/system/cpu/sched_mc_power_savings 2
     write /sys/class/kgsl/kgsl-3d0/devfreq/governor powersave
-    write /sys/class/devfreq/qcom,cpubw.56/governor powersave
+    write /sys/class/devfreq/qcom,cpubw.64/governor powersave
+    write /sys/block/mmcblk0/queue/scheduler cfq
     start mpdecision
 
 # Balanced
@@ -484,8 +498,10 @@ on property:sys.perf.profile=1
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq 1401600
     write /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq 1401600
     write /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq 1401600
+    write /sys/devices/system/cpu/sched_mc_power_savings 1
     write /sys/class/kgsl/kgsl-3d0/devfreq/governor msm-adreno-tz
-    write /sys/class/devfreq/qcom,cpubw.56/governor msm_cpufreq
+    write /sys/class/devfreq/qcom,cpubw.64/governor msm_cpufreq
+    write /sys/block/mmcblk0/queue/scheduler cfq
     start mpdecision
 
 # Performance
@@ -494,13 +510,32 @@ on property:sys.perf.profile=2
     write /sys/devices/system/cpu/cpu1/online 1
     write /sys/devices/system/cpu/cpu2/online 1
     write /sys/devices/system/cpu/cpu3/online 1
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor performance
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor performance
-    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor performance
-    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor performance
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ondemand
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor ondemand
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor ondemand
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor ondemand
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1593600
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq 1593600
     write /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq 1593600
     write /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq 1593600
+    write /sys/devices/system/cpu/sched_mc_power_savings 0
     write /sys/class/kgsl/kgsl-3d0/devfreq/governor performance
-    write /sys/class/devfreq/qcom,cpubw.56/governor performance
+    write /sys/class/devfreq/qcom,cpubw.64/governor performance
+    write /sys/block/mmcblk0/queue/scheduler cfq
+    start mpdecision
+
+# Set different perfer network type for different phone type
+on property:ro.boot.modem=LTETD
+    setprop ro.telephony.default_network 17
+on property:ro.boot.modem=LTEW
+    setprop ro.telephony.default_network 9
+on property:ro.boot.modem=LTEGLOBAL
+    setprop ro.telephony.default_network 9
+
+# Enable manual network selection function for CMCC
+on property:ro.boot.modem=LTETD
+    setprop persist.radio.rat_on combine
+
+# Enable manual network selection function for CU
+on property:ro.boot.modem=LTEW
+    setprop persist.radio.rat_on combine

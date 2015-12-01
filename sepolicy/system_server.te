@@ -1,7 +1,7 @@
-# CMHW
-allow system_server display_sysfs:file rw_file_perms;
-allow system_server vibeamp_sysfs:file rw_file_perms;
-
+#============= system_server =============
+allow system_server mediaserver:unix_stream_socket write;
 allow system_server time_daemon:unix_stream_socket connectto;
 
-allow system_server default_prop:property_service set;
+#============= cmhw ==============
+allow system_server display_sysfs:file rw_file_perms;
+allow system_server vibeamp_sysfs:file rw_file_perms;

@@ -1,17 +1,21 @@
 # Camera
-/data/cam_socket([0-9])+                      u:object_r:camera_socket:s0
-
-# Media
-/dev/media*                        u:object_r:camera_device:s0
-/dev/video/*                       u:object_r:camera_device:s0
-/dev/video*                        u:object_r:camera_device:s0
+/data/cam_socket.*                            u:object_r:camera_socket:s0
 
 # CMHW
-/sys/devices/virtual/graphics/fb0/rgb         u:object_r:display_sysfs:s0
 /sys/class/timed_output/vibrator/amp          u:object_r:vibeamp_sysfs:s0
+
+# GPS
+/system/bin/gsiff_daemon                      u:object_r:location_exec:s0
+
+# MP-Decision
+/data/system/default_values                   u:object_r:mpctl_data_file:s0
+/dev/socket/mpctl                             u:object_r:mpctl_socket:s0
 
 # Sensors
 /persist/misc/sensors(/.*)?                   u:object_r:sensors_persist_file:s0
 
-# Tap2wake
-/sys/android_touch/doubletap2wake             u:object_r:taptowake_sysfs:s0
+# Thermal
+/system/bin/thermal-engine                    u:object_r:thermal-engine_exec:s0
+
+# Display
+/sys/devices/virtual/graphics/fb0/color_enhance    u:object_r:display_sysfs:s0
