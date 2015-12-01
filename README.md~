@@ -3,7 +3,7 @@
 
 
 
-#Specifications:
+##Specifications:
 
 - NETWORK Technology	GSM / HSPA / LTE
 - LAUNCH	Announced 2014, August
@@ -52,6 +52,20 @@
 - Price group	3/10
 
 > Source: http://www.gsmarena.com/xiaomi_redmi_note_4g-6561.php
+
+##Documentation
+
+This is the device tree for Redmi Note 4G (HM NOTE LTE).
+Use the following command to sync tree to your local branch.
+
+```sh
+$ cd /android/source/device/xiaomi
+```
+
+```sh
+$ git clone -b <branch_name> https://github.com/zeeshanhyder/android_device_xiaomi_dior.git
+```
+
 
 ##Official
 - Website	http://www.mi.com/en/note4g/

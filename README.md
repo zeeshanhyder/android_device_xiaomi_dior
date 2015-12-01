@@ -63,7 +63,7 @@ $ cd /android/source/device/xiaomi
 ```
 
 ```sh
-$ git clone -b <branch_name> https://github.com/zeeshanhyder/android_device_xiaomi_dior.git
+$ git clone -b cm-13.0 https://github.com/zeeshanhyder/android_device_xiaomi_dior.git
 ```
 
 
