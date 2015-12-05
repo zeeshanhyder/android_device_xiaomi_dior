@@ -21,3 +21,4 @@ ifeq ($(TARGET_DEVICE),dior)
 include $(call all-makefiles-under,$(LOCAL_PATH))
 
 endif
+
