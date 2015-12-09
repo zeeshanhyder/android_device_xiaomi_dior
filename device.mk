@@ -18,12 +18,13 @@ $(call inherit-product, vendor/xiaomi/dior/dior-vendor.mk)
 
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
-PRODUCT_AAPT_CONFIG := normal
+PRODUCT_AAPT_CONFIG := normal hdpi xhdpi
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
 
 TARGET_SCREEN_HEIGHT := 1280
 TARGET_SCREEN_WIDTH := 720
 
+$(call inherit-product-if-exists, vendor/xiaomi/dior/dior-vendor.mk)
 $(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
 
 # ANT+
@@ -34,7 +35,9 @@ PRODUCT_PACKAGES += \
 
 # Art
 PRODUCT_PROPERTY_OVERRIDES += \
-    dalvik.vm.dex2oat-flags=--no-watch-dog
+	dalvik.vm.dex2oat-filter=speed \
+    dalvik.vm.dex2oat-swap=false \
+    dalvik.vm.image-dex2oat-filter=speed
 
 # Audio
 PRODUCT_PACKAGES += \
@@ -53,7 +56,7 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/audio_effects.conf:system/vendor/etc/audio_effects.conf \
-    $(LOCAL_PATH)/configs/audio_platform_info.xml:system/etc/audio_platform_info.xml \
+	$(LOCAL_PATH)/configs/sensor_def_qcomdev.conf:system/etc/sensor_def_qcomdev.conf \
     $(LOCAL_PATH)/configs/audio_policy.conf:system/etc/audio_policy.conf \
     $(LOCAL_PATH)/configs/mixer_paths.xml:system/etc/mixer_paths.xml
 
@@ -73,9 +76,7 @@ PRODUCT_PACKAGES += \
 
 # Charger
 PRODUCT_PACKAGES += \
-    charger_res_images \
-    liboverlay \
-    libemoji
+    charger_res_images
 
 # Connectivity
 PRODUCT_PACKAGES += \
@@ -86,7 +87,9 @@ PRODUCT_PACKAGES += \
     copybit.msm8226 \
     gralloc.msm8226 \
     hwcomposer.msm8226 \
-    memtrack.msm8226
+    memtrack.msm8226 \
+    liboverlay \
+    libemoji
 
 # DRM
 #PRODUCT_PROPERTY_OVERRIDES += \
@@ -115,7 +118,9 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PACKAGES += \
     gps.conf \
-    sap.conf
+    sap.conf \
+	flp.conf \
+	izat.conf
 
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.gps.agps_provider=1
@@ -149,9 +154,15 @@ PRODUCT_COPY_FILES += \
 
 # OMX
 PRODUCT_PACKAGES += \
+    libc2dcolorconvert \
+    libdivxdrmdecrypt \
     libdashplayer \
+    libOmxAacEnc \
+    libOmxAmrEnc \
     libOmxCore \
-    libOmxVdec \
+    libOmxEvrcEnc \
+    libOmxQcelp13Enc \
+    libOmxVdecHevc \
     libOmxVenc \
     libstagefrighthw \
     qcmediaplayer

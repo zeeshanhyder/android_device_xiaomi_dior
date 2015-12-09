@@ -7,18 +7,13 @@ audio.offload.buffer.size.kb=32
 audio.offload.gapless.enabled=true
 audio.offload.multiple.enabled=false
 audio.offload.video=false
-av.streaming.offload.enable=false
 use.voice.path.for.pcm.voip=true
-
 av.offload.enable=false
-
-
 av.streaming.offload.enable=false
-
 mm.enable.smoothstreaming=true
 persist.audio.fluence.voicecall=true
 persist.audio.fluence.voicerec=false
-persist.audio.fluence.speaker=false 
+persist.audio.fluence.speaker=true 
 
 # Display
 ro.opengles.version=196608
