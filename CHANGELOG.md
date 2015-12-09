@@ -10,15 +10,15 @@
 - Fixed battery stats
 
 ### Alpha C (in staging)
-- Added changes to media_profiles from motorola/msm8226-common
+- Remove changes to media_profiles from motorola/msm8226-common (causing issues)
 - Updated audio policy from stock
 - Reverted back to default GCC (Removed UBERTC)
 - Added thermal config from motorola/msm8226-common (To be changed again)
 - Updated power profile
 - Added qcom.wifi.sh, qcom.fm.sh, qcom.audio.sh
 - Updated acdbdata from stock
-- Added qcom_def_sensor (Possibly replacement of init.target.rc) 
-- Added MMI shared libraries (possibly fm will work)
+- Added qcom_def_sensor
+- Added MMI shared libraries (possibly fm will work) (it didnt)
 
 ### Alpha B
 - Used balanced thermal engine
