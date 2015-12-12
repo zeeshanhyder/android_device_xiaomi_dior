@@ -123,7 +123,11 @@ on boot
 on post-fs-data
     mkdir /data/media 0770 media_rw media_rw
 
-    # Create directories for Location services
+    # Wifi
+    restorecon /data/hostapd
+    restorecon /data/misc/wifi/hostapd/wlan0
+
+ 	# Create directories for Location services
     mkdir /data/misc/location 0770 gps gps
     mkdir /data/misc/location/gsiff 0770 gps gps
 
@@ -132,6 +136,8 @@ on post-fs-data
 
     # Create directory for hostapd
     mkdir /data/hostapd 0770 system wifi
+
+
 
     # Create /data/time folder for time-services
     mkdir /data/time/ 0700 system system
@@ -331,6 +337,11 @@ service qseecomd /system/bin/qseecomd
     class core
     user root
     group root
+
+service audiod /system/bin/audiod
+	class late_start
+	user root
+	group root
     
 service adsprpcd /system/bin/adsprpcd
     class main
