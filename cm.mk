@@ -9,6 +9,6 @@ $(call inherit-product, vendor/cm/config/common_full_phone.mk)
 $(call inherit-product, device/xiaomi/dior/full_dior.mk)
 
 PRODUCT_RELEASE_NAME := Redmi Note 4G
-PRODUCT_NAME := cm_dior
+PRODUCT_NAME := dior
 
 PRODUCT_GMS_CLIENTID_BASE := android-xiaomi

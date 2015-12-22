@@ -18,6 +18,8 @@
 BOARD_ANT_WIRELESS_DEVICE := "qualcomm-smd"
 
 # Architecture
+TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
+TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_ABI := armeabi-v7a
@@ -96,13 +98,20 @@ TARGET_LIBINIT_DEFINES_FILE := device/xiaomi/dior/init/init_dior.c
 
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/xiaomi/dior
-TARGET_KERNEL_CONFIG := dior_cyanogenmod_defconfig
-BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=dior user_debug=31 msm_rtb.filter=0x37
+TARGET_KERNEL_CONFIG := phablet_dior_defconfig
+BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=dior user_debug=31 msm_rtb.filter=0x37 androidboot.selinux=permissive
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_SEPARATED_DT := true
 BOARD_DTBTOOL_ARGS := --force-v2
 BOARD_MKBOOTIMG_ARGS := --kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100
+BOARD_CUSTOM_BOOTIMG_MK := device/xiaomi/dior/mkbootimg.mk
+
+# Ubuntu Specific Config
+#TARGET_KERNEL_UBUNTU := true
+#TARGET_KERNEL_UBUNTU_META := linux-image-dior
+#TARGET_KERNEL_UBUNTU_SERIES := vivid
+TARGET_USES_C2D_COMPOSITON := true
 
 # Camera
 USE_CAMERA_STUB := true
@@ -129,12 +138,27 @@ TARGET_RECOVERY_FSTAB := device/xiaomi/dior/rootdir/etc/fstab.dior
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
 COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
 TARGET_USERIMAGES_USE_EXT4 := true
-TARGET_USERIMAGES_USE_F2FS := true
+#TARGET_USERIMAGES_USE_F2FS := true
 
 # SELinux
-include device/qcom/sepolicy/sepolicy.mk
+#include device/qcom/sepolicy/sepolicy.mk
 
-BOARD_SEPOLICY_DIRS += device/xiaomi/dior/sepolicy
+BOARD_SEPOLICY_DIRS := device/xiaomi/dior/sepolicy
+BOARD_SEPOLICY_UNION := \
+       bootanim.te \
+       file.te \
+       file_contexts \
+       init.te \
+       mediaserver.te \
+	   mpdecision.te \
+       property.te \
+       rmt_storage.te \
+       sysinit.te \
+       system_app.te \
+	   system_server.te \
+       thermal-engine.te \
+       wcnss_service.te
+
 
 # Time services
 BOARD_USES_QC_TIME_SERVICES := true

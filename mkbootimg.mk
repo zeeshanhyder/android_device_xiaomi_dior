@@ -12,6 +12,11 @@ $(foreach d, $(CM_DTB_FILES), \
     cat $(KERNEL_ZIMG) $(call DTB_FILE,$(d)) > $(call ZIMG_FILE,$(d));)
 endef
 
+# use separate boot image arguments for ubuntu boot.img
+INTERNAL_BOOTIMAGE_ARGS_UBUNTU := \
+    --cmdline "$(BOARD_KERNEL_CMDLINE)" \
+    --base $(BOARD_KERNEL_BASE) \
+    --pagesize $(BOARD_KERNEL_PAGESIZE)
 
 ## Build and run dtbtool
 DTBTOOL := $(HOST_OUT_EXECUTABLES)/dtbToolCM$(HOST_EXECUTABLE_SUFFIX)
@@ -31,6 +36,13 @@ $(INSTALLED_BOOTIMAGE_TARGET): $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_FILES) $(INSTAL
 	$(hide) $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_ARGS) $(BOARD_MKBOOTIMG_ARGS) --dt $(INSTALLED_DTIMAGE_TARGET) --output $@
 	$(hide) $(call assert-max-image-size,$@,$(BOARD_BOOTIMAGE_PARTITION_SIZE),raw)
 	@echo -e ${CL_CYN}"Made boot image: $@"${CL_RST}
+
+## Overload ubuntu bootimg generation: Same as the original, + --dt arg
+$(INSTALLED_BOOTIMAGE_TARGET): $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_FILES_) $(INSTALLED_DTIMAGE_TARGET)
+	$(call pretty,"Target boot image for Ubuntu Touch: $@")
+	$(hide) $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_ARGS) $(INTERNAL_BOOTIMAGE_ARGS_UBUNTU) $(BOARD_MKBOOTIMG_ARGS) --dt $(INSTALLED_DTIMAGE_TARGET) --output $@
+	$(hide) $(call assert-max-image-size,$@,$(BOARD_BOOTIMAGE_PARTITION_SIZE),raw)
+	@echo -e ${CL_CYN}"Made ubuntu boot image: $@"${CL_RST}
 
 ## Overload recoveryimg generation: Same as the original, + --dt arg
 $(INSTALLED_RECOVERYIMAGE_TARGET): $(MKBOOTIMG) $(INSTALLED_DTIMAGE_TARGET) \
