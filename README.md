@@ -63,7 +63,7 @@ $ cd /android/source/device/xiaomi
 ```
 
 ```sh
-$ git clone -b cm-12.1 https://github.com/zeeshanhyder/android_device_xiaomi_dior.git
+$ git clone -b ubuntu-touch https://github.com/zeeshanhyder/android_device_xiaomi_dior.git
 ```
 
 
