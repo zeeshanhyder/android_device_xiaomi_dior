@@ -50,8 +50,8 @@ PRODUCT_PACKAGES += \
     tinymix
 
 #DTB Tool
-PRODUCT_PACKAGES += += \
-	dtbToolCM
+#PRODUCT_PACKAGES += \
+#	dtbToolCM
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/audio_effects.conf:system/vendor/etc/audio_effects.conf \

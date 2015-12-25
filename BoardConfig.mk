@@ -29,7 +29,7 @@ TARGET_CPU_VARIANT := krait
 
 # Audio
 BOARD_USES_ALSA_AUDIO := true
-AUDIO_FEATURE_ENABLED_FM := true
+#AUDIO_FEATURE_ENABLED_FM := true
 AUDIO_FEATURE_ENABLED_MULTI_VOICE_SESSIONS := true
 
 # Bluetooth
@@ -59,8 +59,11 @@ BOARD_USERDATAIMAGE_PARTITION_SIZE	:= 6241112064 # - 16384 for crypto footer
 TARGET_USERIMAGES_USE_EXT4		:= true
 BOARD_FLASH_BLOCK_SIZE			:= 131072
 
+# SYSTEM_PROP
+TARGET_SYSTEM_PROP += device/xiaomi/dior/system.prop
+
 # FM
-BOARD_HAVE_QCOM_FM := true
+#BOARD_HAVE_QCOM_FM := true
 
 # Fonts
 EXTENDED_FONT_FOOTPRINT := true
@@ -70,6 +73,7 @@ TARGET_GPS_HAL_PATH := device/xiaomi/dior/gps
 TARGET_PROVIDES_GPS_LOC_API := true
 
 # Graphics
+BOARD_EGL_CFG := device/xiaomi/dior/configs/egl.cfg
 TARGET_USES_C2D_COMPOSITION := true
 TARGET_USES_ION := true
 USE_OPENGL_RENDERER := true
@@ -98,14 +102,14 @@ TARGET_LIBINIT_DEFINES_FILE := device/xiaomi/dior/init/init_dior.c
 
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/xiaomi/dior
-TARGET_KERNEL_CONFIG := phablet_dior_defconfig
-BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=dior user_debug=31 msm_rtb.filter=0x37 androidboot.selinux=permissive
+TARGET_KERNEL_CONFIG := cyanogenmod_dior_defconfig #phablet_dior_defconfig
+BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.hardware=dior user_debug=31 msm_rtb.filter=0x37 androidboot.selinux=permissive debug break=top apparmor=0
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_SEPARATED_DT := true
 BOARD_DTBTOOL_ARGS := --force-v2
 BOARD_MKBOOTIMG_ARGS := --kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100
-BOARD_CUSTOM_BOOTIMG_MK := device/xiaomi/dior/mkbootimg.mk
+BOARD_CUSTOM_BOOTIMG_MK := device/xiaomi/dior/mkbootimg2.mk
 
 # Ubuntu Specific Config
 #TARGET_KERNEL_UBUNTU := true
@@ -139,9 +143,12 @@ TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
 COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
 TARGET_USERIMAGES_USE_EXT4 := true
 #TARGET_USERIMAGES_USE_F2FS := true
+BOARD_HAS_NO_SELECT_BUTTON := true
 
 # SELinux
 #include device/qcom/sepolicy/sepolicy.mk
+
+TARGET_QCOM_MEDIA_VARIANT := caf-new
 
 BOARD_SEPOLICY_DIRS := device/xiaomi/dior/sepolicy
 BOARD_SEPOLICY_UNION := \
@@ -161,7 +168,7 @@ BOARD_SEPOLICY_UNION := \
 
 
 # Time services
-BOARD_USES_QC_TIME_SERVICES := true
+#BOARD_USES_QC_TIME_SERVICES := true
 
 # Vold
 BOARD_VOLD_EMMC_SHARES_DEV_MAJOR := true
