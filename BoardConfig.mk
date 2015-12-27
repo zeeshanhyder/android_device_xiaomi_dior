@@ -108,8 +108,8 @@ BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_SEPARATED_DT := true
 BOARD_DTBTOOL_ARGS := --force-v2
-BOARD_MKBOOTIMG_ARGS := --kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100
-BOARD_CUSTOM_BOOTIMG_MK := device/xiaomi/dior/mkbootimg2.mk
+BOARD_MKBOOTIMG_ARGS := --kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --dt device/xiaomi/dior/dt.img --tags_offset 0x00000100
+#BOARD_CUSTOM_BOOTIMG_MK := device/xiaomi/dior/mkbootimg2.mk
 
 # Ubuntu Specific Config
 #TARGET_KERNEL_UBUNTU := true

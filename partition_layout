@@ -1,0 +1,32 @@
+hyder@wittyparrot:/sdcard # ls -al /dev/block/platform/msm_sdcc.1/by-name
+
+lrwxrwxrwx root     root              2015-12-26 09:56 DDR -> /dev/block/mmcblk0p9
+lrwxrwxrwx root     root              2015-12-26 09:56 aboot -> /dev/block/mmcblk0p10
+lrwxrwxrwx root     root              2015-12-26 09:56 abootbak -> /dev/block/mmcblk0p11
+lrwxrwxrwx root     root              2015-12-26 09:56 bk1 -> /dev/block/mmcblk0p12
+lrwxrwxrwx root     root              2015-12-26 09:56 bk2 -> /dev/block/mmcblk0p15
+lrwxrwxrwx root     root              2015-12-26 09:56 bk3 -> /dev/block/mmcblk0p19
+lrwxrwxrwx root     root              2015-12-26 09:56 bk4 -> /dev/block/mmcblk0p21
+lrwxrwxrwx root     root              2015-12-26 09:56 bk5 -> /dev/block/mmcblk0p22
+lrwxrwxrwx root     root              2015-12-26 09:56 boot -> /dev/block/mmcblk0p24
+lrwxrwxrwx root     root              2015-12-26 09:56 cache -> /dev/block/mmcblk0p28
+lrwxrwxrwx root     root              2015-12-26 09:56 fsc -> /dev/block/mmcblk0p18
+lrwxrwxrwx root     root              2015-12-26 09:56 fsg -> /dev/block/mmcblk0p20
+lrwxrwxrwx root     root              2015-12-26 09:56 logo -> /dev/block/mmcblk0p14
+lrwxrwxrwx root     root              2015-12-26 09:56 misc -> /dev/block/mmcblk0p13
+lrwxrwxrwx root     root              2015-12-26 09:56 modem -> /dev/block/mmcblk0p23
+lrwxrwxrwx root     root              2015-12-26 09:56 modemst1 -> /dev/block/mmcblk0p16
+lrwxrwxrwx root     root              2015-12-26 09:56 modemst2 -> /dev/block/mmcblk0p17
+lrwxrwxrwx root     root              2015-12-26 09:56 persist -> /dev/block/mmcblk0p26
+lrwxrwxrwx root     root              2015-12-26 09:56 recovery -> /dev/block/mmcblk0p25
+lrwxrwxrwx root     root              2015-12-26 09:56 rpm -> /dev/block/mmcblk0p3
+lrwxrwxrwx root     root              2015-12-26 09:56 rpmbak -> /dev/block/mmcblk0p4
+lrwxrwxrwx root     root              2015-12-26 09:56 sbl1 -> /dev/block/mmcblk0p1
+lrwxrwxrwx root     root              2015-12-26 09:56 sbl1bak -> /dev/block/mmcblk0p2
+lrwxrwxrwx root     root              2015-12-26 09:56 sdi -> /dev/block/mmcblk0p8
+lrwxrwxrwx root     root              2015-12-26 09:56 ssd -> /dev/block/mmcblk0p7
+lrwxrwxrwx root     root              2015-12-26 09:56 system -> /dev/block/mmcblk0p27
+lrwxrwxrwx root     root              2015-12-26 09:56 tz -> /dev/block/mmcblk0p5
+lrwxrwxrwx root     root              2015-12-26 09:56 tzbak -> /dev/block/mmcblk0p6
+lrwxrwxrwx root     root              2015-12-26 09:56 userdata -> /dev/block/mmcblk0p29
+
