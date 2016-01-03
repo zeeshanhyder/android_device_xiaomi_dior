@@ -29,10 +29,10 @@ $(call inherit-product-if-exists, vendor/xiaomi/dior/dior-vendor.mk)
 $(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
 
 # ANT+
-PRODUCT_PACKAGES += \
-    AntHalService \
-    com.dsi.ant.antradio_library \
-    libantradio
+#PRODUCT_PACKAGES += \
+#    AntHalService \
+#    com.dsi.ant.antradio_library \
+#    libantradio
 
 # Audio
 PRODUCT_PACKAGES += \
