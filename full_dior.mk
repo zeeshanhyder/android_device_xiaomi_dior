@@ -30,3 +30,20 @@ PRODUCT_GMS_CLIENTID_BASE := android-xiaomi
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
     PRODUCT_NAME=dior
+
+# Ubuntu Overlay Files
+PRODUCT_COPY_FILES += \
+    device/xiaomi/dior/ubuntu/udev.rules:system/ubuntu/lib/udev/rules.d/70-dior.rules \
+    device/xiaomi/dior/ubuntu/display.conf:system/ubuntu/etc/ubuntu-touch-session.d/dior.conf \
+    device/xiaomi/dior/ubuntu/rcS:system/ubuntu/etc/default/hwclock \
+    device/xiaomi/dior/ubuntu/bluetooth-touch-dior.conf:system/ubuntu/etc/init/bluetooth-touch-dior.conf \
+    device/xiaomi/dior/ubuntu/bluetooth.sh:system/ubuntu/usr/share/bluetooth-touch/dior \
+    device/xiaomi/dior/ubuntu/config-dior.xml:system/ubuntu/usr/share/powerd/device_configs/config-dior.xml \
+    device/xiaomi/dior/ubuntu/init/ubuntu-location-service.override:system/ubuntu/etc/init/ubuntu-location-service.override \
+    device/xiaomi/dior/ubuntu/msm8226-tapan-snd-card.conf:system/ubuntu/usr/share/alsa/ucm/msm8226-tapan-snd-card/msm8226-tapan-snd-card.conf \
+    device/xiaomi/dior/ubuntu/HiFi:system/ubuntu/usr/share/alsa/ucm/msm8226-tapan-snd-card/HiFi \
+    device/xiaomi/dior/ubuntu/VoiceCall:system/ubuntu/usr/share/alsa/ucm/msm8226-tapan-snd-card/VoiceCall
+
+# device id for ubuntu initrd
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.product.device=dior
